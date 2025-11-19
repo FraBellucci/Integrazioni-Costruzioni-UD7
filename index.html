@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UD7 - Sequenza Operativa Lavori in Quota</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .instructions {
+            background: #f7fafc;
+            border-left: 4px solid #4299e1;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        .instructions h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .instructions p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .scenario-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .scenario-btn {
+            flex: 1;
+            padding: 20px;
+            background: white;
+            border: 3px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .scenario-btn:hover {
+            border-color: #4299e1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.2);
+        }
+
+        .scenario-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .scenario-btn h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .scenario-btn p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .scenario-content {
+            display: none;
+        }
+
+        .scenario-content.active {
+            display: block;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .column {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .column h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .cards-container {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            cursor: move;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .card:hover {
+            border-color: #4299e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .card.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+        }
+
+        .card-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #edf2f7;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-right: 10px;
+        }
+
+        .card.in-sequence .card-number {
+            background: #667eea;
+            color: white;
+        }
+
+        .card-text {
+            color: #2d3748;
+            line-height: 1.5;
+        }
+
+        .drop-zone {
+            min-height: 60px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 10px;
+            transition: all 0.2s;
+        }
+
+        .drop-zone.drag-over {
+            background: #ebf8ff;
+            border-color: #4299e1;
+        }
+
+        .drop-zone.filled {
+            border-style: solid;
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #edf2f7;
+            color: #2d3748;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            display: none;
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .results h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .final-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .final-score h2 {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .final-score p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .sequence-review {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sequence-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .sequence-item.correct {
+            border-left: 4px solid #48bb78;
+        }
+
+        .sequence-item.wrong {
+            border-left: 4px solid #f56565;
+        }
+
+        .sequence-position {
+            width: 40px;
+            height: 40px;
+            background: #edf2f7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .sequence-item.correct .sequence-position {
+            background: #48bb78;
+            color: white;
+        }
+
+        .sequence-item.wrong .sequence-position {
+            background: #f56565;
+            color: white;
+        }
+
+        .sequence-text {
+            flex: 1;
+            color: #2d3748;
+        }
+
+        .sequence-status {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .note {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #2c5282;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ UD7 - Sequenza Operativa Lavori in Quota</h1>
+            <p>Metti in ordine le fasi operative secondo la corretta sequenza temporale</p>
+        </div>
+
+        <div class="content">
+            <div class="instructions">
+                <h3>📋 Istruzioni</h3>
+                <p><strong>Obiettivo:</strong> Trascina le card dalla colonna di sinistra alla colonna di destra nell'ordine temporale corretto.</p>
+                <p><strong>Come funziona:</strong> Clicca e trascina ogni carta nella sequenza giusta. Le carte possono essere riposizionate anche dopo il primo inserimento.</p>
+                <p><strong>Valutazione:</strong> Ogni fase posizionata correttamente vale punti. La sequenza completa e corretta garantisce il massimo punteggio.</p>
+            </div>
+
+            <div class="scenario-selector">
+                <div class="scenario-btn active" data-scenario="1">
+                    <h3>🏗️ Scenario 1</h3>
+                    <p>Montaggio Ponteggio Fisso</p>
+                    <p style="font-size: 12px; margin-top: 8px;">8 fasi da ordinare</p>
+                </div>
+                <div class="scenario-btn" data-scenario="2">
+                    <h3>🪢 Scenario 2</h3>
+                    <p>Utilizzo DPI Anticaduta</p>
+                    <p style="font-size: 12px; margin-top: 8px;">6 fasi da ordinare</p>
+                </div>
+            </div>
+
+            <!-- SCENARIO 1 -->
+            <div class="scenario-content active" id="scenario1">
+                <div class="game-area">
+                    <div class="column">
+                        <h3>📦 Fasi da ordinare</h3>
+                        <div class="cards-container" id="sourceCards1"></div>
+                    </div>
+                    <div class="column">
+                        <h3>📝 Sequenza corretta</h3>
+                        <div class="cards-container" id="sequenceCards1"></div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn btn-secondary" onclick="resetScenario(1)">🔄 Ricomincia</button>
+                    <button class="btn btn-primary" onclick="checkSequence(1)">✓ Verifica Sequenza</button>
+                </div>
+
+                <div class="results" id="results1"></div>
+            </div>
+
+            <!-- SCENARIO 2 -->
+            <div class="scenario-content" id="scenario2">
+                <div class="game-area">
+                    <div class="column">
+                        <h3>📦 Fasi da ordinare</h3>
+                        <div class="cards-container" id="sourceCards2"></div>
+                    </div>
+                    <div class="column">
+                        <h3>📝 Sequenza corretta</h3>
+                        <div class="cards-container" id="sequenceCards2"></div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn btn-secondary" onclick="resetScenario(2)">🔄 Ricomincia</button>
+                    <button class="btn btn-primary" onclick="checkSequence(2)">✓ Verifica Sequenza</button>
+                </div>
+
+                <div class="results" id="results2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dati degli scenari
+        const scenarios = {
+            1: {
+                title: "Montaggio Ponteggio Fisso",
+                normative: "UNI EN 12811:2024, D.Lgs. 81/2008 art. 136-137",
+                steps: [
+                    { id: 1, text: "Verifica della portata del terreno e livellamento dell'area di installazione" },
+                    { id: 2, text: "Posa delle basette ripartitrici livellate su superficie compatta" },
+                    { id: 3, text: "Montaggio dei montanti verticali del primo livello con controllo verticalità" },
+                    { id: 4, text: "Installazione dei correnti orizzontali e traversi di collegamento" },
+                    { id: 5, text: "Posa dei tavolati calpestabili e tavole fermapiede" },
+                    { id: 6, text: "Installazione dei parapetti di protezione (corrente superiore e intermedio)" },
+                    { id: 7, text: "Realizzazione degli ancoraggi alla struttura (ogni 3 piani o 4 metri)" },
+                    { id: 8, text: "Compilazione del verbale di montaggio e autorizzazione all'uso" }
+                ]
+            },
+            2: {
+                title: "Utilizzo DPI Anticaduta",
+                normative: "UNI EN 361, 362, 355 - D.Lgs. 81/2008 art. 115",
+                steps: [
+                    { id: 1, text: "Ispezione visiva dell'imbracatura: controllo cuciture, fibbie e usura" },
+                    { id: 2, text: "Indossare l'imbracatura e regolare tutte le cinghie secondo corporatura" },
+                    { id: 3, text: "Individuazione e verifica del punto di ancoraggio certificato (≥12 kN)" },
+                    { id: 4, text: "Collegamento del cordino con moschettone a chiusura automatica" },
+                    { id: 5, text: "Verifica della lunghezza del sistema e calcolo del tirante d'aria" },
+                    { id: 6, text: "Test di trattenuta e verifica mobilità prima dell'inizio dei lavori" }
+                ]
+            }
+        };
+
+        let currentScenario = 1;
+        let draggedElement = null;
+
+        // Inizializzazione
+        function init() {
+            initScenario(1);
+            initScenario(2);
+            setupScenarioButtons();
+        }
+
+        function setupScenarioButtons() {
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const scenario = parseInt(btn.dataset.scenario);
+                    switchScenario(scenario);
+                });
+            });
+        }
+
+        function switchScenario(scenario) {
+            currentScenario = scenario;
+            
+            // Update buttons
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.scenario) === scenario);
+            });
+
+            // Update content
+            document.querySelectorAll('.scenario-content').forEach(content => {
+                content.classList.toggle('active', content.id === `scenario${scenario}`);
+            });
+        }
+
+        function initScenario(scenarioNum) {
+            const scenario = scenarios[scenarioNum];
+            const sourceContainer = document.getElementById(`sourceCards${scenarioNum}`);
+            const sequenceContainer = document.getElementById(`sequenceCards${scenarioNum}`);
+
+            // Shuffle steps
+            const shuffled = [...scenario.steps].sort(() => Math.random() - 0.5);
+
+            // Create source cards
+            sourceContainer.innerHTML = '';
+            shuffled.forEach(step => {
+                const card = createCard(step, scenarioNum);
+                sourceContainer.appendChild(card);
+            });
+
+            // Create drop zones
+            sequenceContainer.innerHTML = '';
+            scenario.steps.forEach((_, index) => {
+                const dropZone = createDropZone(index + 1, scenarioNum);
+                sequenceContainer.appendChild(dropZone);
+            });
+        }
+
+        function createCard(step, scenarioNum) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.draggable = true;
+            card.dataset.id = step.id;
+            card.dataset.scenario = scenarioNum;
+            card.innerHTML = `
+                <span class="card-number">${step.id}</span>
+                <span class="card-text">${step.text}</span>
+            `;
+
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+
+            return card;
+        }
+
+        function createDropZone(position, scenarioNum) {
+            const zone = document.createElement('div');
+            zone.className = 'drop-zone';
+            zone.dataset.position = position;
+            zone.dataset.scenario = scenarioNum;
+
+            zone.addEventListener('dragover', handleDragOver);
+            zone.addEventListener('drop', handleDrop);
+            zone.addEventListener('dragleave', handleDragLeave);
+
+            return zone;
+        }
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            if (e.target.classList.contains('drop-zone')) {
+                e.target.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            if (e.target.classList.contains('drop-zone')) {
+                e.target.classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const dropZone = e.target.closest('.drop-zone');
+            
+            if (!dropZone) return;
+            
+            dropZone.classList.remove('drag-over');
+            
+            // If zone already has a card, move it back to source
+            const existingCard = dropZone.querySelector('.card');
+            if (existingCard) {
+                const scenario = parseInt(existingCard.dataset.scenario);
+                document.getElementById(`sourceCards${scenario}`).appendChild(existingCard);
+            }
+
+            // Add dragged card to zone
+            dropZone.appendChild(draggedElement);
+            dropZone.classList.add('filled');
+            draggedElement.classList.add('in-sequence');
+        }
+
+        function resetScenario(scenarioNum) {
+            const resultsDiv = document.getElementById(`results${scenarioNum}`);
+            resultsDiv.classList.remove('active');
+            initScenario(scenarioNum);
+        }
+
+        function checkSequence(scenarioNum) {
+            const scenario = scenarios[scenarioNum];
+            const sequenceContainer = document.getElementById(`sequenceCards${scenarioNum}`);
+            const dropZones = sequenceContainer.querySelectorAll('.drop-zone');
+            
+            let correctCount = 0;
+            const userSequence = [];
+
+            dropZones.forEach((zone, index) => {
+                const card = zone.querySelector('.card');
+                if (card) {
+                    const cardId = parseInt(card.dataset.id);
+                    const correctId = index + 1;
+                    const isCorrect = cardId === correctId;
+                    
+                    if (isCorrect) correctCount++;
+                    
+                    userSequence.push({
+                        position: index + 1,
+                        cardId: cardId,
+                        text: scenario.steps.find(s => s.id === cardId).text,
+                        isCorrect: isCorrect
+                    });
+                } else {
+                    userSequence.push({
+                        position: index + 1,
+                        cardId: null,
+                        text: "Non assegnata",
+                        isCorrect: false
+                    });
+                }
+            });
+
+            showResults(scenarioNum, correctCount, scenario.steps.length, userSequence, scenario);
+        }
+
+        function showResults(scenarioNum, correct, total, userSequence, scenario) {
+            const resultsDiv = document.getElementById(`results${scenarioNum}`);
+            const percentage = Math.round((correct / total) * 100);
+
+            let evaluation = '';
+            if (percentage === 100) evaluation = '🏆 Perfetto! Sequenza completamente corretta!';
+            else if (percentage >= 75) evaluation = '✅ Ottimo! Buona conoscenza delle procedure.';
+            else if (percentage >= 50) evaluation = '👍 Sufficiente, ma rivedi alcune fasi operative.';
+            else evaluation = '⚠️ Insufficiente. Studia meglio la sequenza operativa.';
+
+            let html = `
+                <div class="final-score">
+                    <h2>${correct} / ${total}</h2>
+                    <p>${evaluation}</p>
+                    <p style="font-size: 16px; margin-top: 10px;">Punteggio: ${percentage}%</p>
+                </div>
+                <h3>📊 Verifica Sequenza</h3>
+                <div class="sequence-review">
+            `;
+
+            userSequence.forEach(item => {
+                const correctStep = scenario.steps[item.position - 1];
+                html += `
+                    <div class="sequence-item ${item.isCorrect ? 'correct' : 'wrong'}">
+                        <div class="sequence-position">${item.position}</div>
+                        <div class="sequence-text">
+                            <strong>La tua scelta:</strong> ${item.text}<br>
+                            ${!item.isCorrect ? `<strong style="color: #48bb78;">Corretto:</strong> ${correctStep.text}` : ''}
+                        </div>
+                        <div class="sequence-status">${item.isCorrect ? '✓' : '✗'}</div>
+                    </div>
+                `;
+            });
+
+            html += `
+                </div>
+                <div class="note">
+                    <strong>📚 Riferimenti normativi:</strong><br>
+                    ${scenario.normative}<br><br>
+                    <strong>💡 Nota operativa:</strong> La sequenza corretta garantisce la sicurezza strutturale e 
+                    la protezione costante degli operatori durante tutte le fasi ${scenarioNum === 1 ? 'di montaggio' : 'di utilizzo dei DPI'}.
+                </div>
+            `;
+
+            resultsDiv.innerHTML = html;
+            resultsDiv.classList.add('active');
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
