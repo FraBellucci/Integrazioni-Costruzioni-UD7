@@ -163,25 +163,7 @@
             transform: rotate(2deg);
         }
 
-        .card-number {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            background: #edf2f7;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 30px;
-            font-weight: bold;
-            color: #2d3748;
-            margin-right: 10px;
-        }
-
-        .card.in-sequence .card-number {
-            background: #667eea;
-            color: white;
-        }
-
-        .card-text {
+         .card-text {
             color: #2d3748;
             line-height: 1.5;
         }
@@ -517,23 +499,21 @@
             });
         }
 
-        function createCard(step, scenarioNum) {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.draggable = true;
-            card.dataset.id = step.id;
-            card.dataset.scenario = scenarioNum;
-            card.innerHTML = `
-                <span class="card-number">${step.id}</span>
-                <span class="card-text">${step.text}</span>
-            `;
+       function createCard(step, scenarioNum) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.draggable = true;
+    card.dataset.id = step.id;
+    card.dataset.scenario = scenarioNum;
+    card.innerHTML = `
+        <span class="card-text">${step.text}</span>
+    `;
 
-            card.addEventListener('dragstart', handleDragStart);
-            card.addEventListener('dragend', handleDragEnd);
+    card.addEventListener('dragstart', handleDragStart);
+    card.addEventListener('dragend', handleDragEnd);
 
-            return card;
-        }
-
+    return card;
+}
         function createDropZone(position, scenarioNum) {
             const zone = document.createElement('div');
             zone.className = 'drop-zone';
